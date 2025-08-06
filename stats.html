@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wine Cellar Statistics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <!-- Hero / Header for stats page -->
+  <header id="hero-stats">
+    <div class="hero-content">
+      <h1>Cellar Statistics</h1>
+      <p>Visualize your collection by country, vintage and style.</p>
+    </div>
+  </header>
+  <!-- Navigation bar -->
+  <nav>
+    <ul>
+      <li><a href="index.html#inventory">Inventory</a></li>
+      <li><a href="stats.html">Statistics</a></li>
+    </ul>
+  </nav>
+  <section id="country-chart">
+    <h2>Wines by Country</h2>
+    <canvas id="chartCountry" height="200"></canvas>
+  </section>
+  <section id="vintage-chart">
+    <h2>Wines by Vintage Year</h2>
+    <canvas id="chartVintage" height="200"></canvas>
+  </section>
+  <section id="style-chart">
+    <h2>Wines by Style</h2>
+    <canvas id="chartStyle" height="200"></canvas>
+  </section>
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
+  <script>
+    $(document).ready(function() {
+      createCountryChart();
+      createVintageChart();
+      createStyleChart();
+    });
+  </script>
+</body>
+</html>
