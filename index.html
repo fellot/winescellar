@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css"/>
   <!-- Custom styles -->
   <link rel="stylesheet" href="style.css"/>
+  <!-- PWA manifest to enable offline support -->
+  <link rel="manifest" href="manifest.json"/>
 </head>
 <body>
   <!-- Hero section with decorative image -->
@@ -25,12 +27,35 @@
     <ul>
       <li><a href="#inventory">Inventory</a></li>
       <li><a href="stats.html">Statistics</a></li>
+      <li><a href="sustainability.html">Sustainability</a></li>
+      <li class="theme-toggle">
+        <button id="themeToggle" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
+      </li>
     </ul>
   </nav>
 
   <!-- Inventory Section -->
   <section id="inventory">
     <h2>Cellar Inventory</h2>
+    <!-- Dashboard metrics cards -->
+    <div id="dashboard" class="dashboard">
+      <div class="card" id="cardTotal">
+        <div class="card-title">Total bottles</div>
+        <div class="card-value">–</div>
+      </div>
+      <div class="card" id="cardCountries">
+        <div class="card-title">Countries</div>
+        <div class="card-value">–</div>
+      </div>
+      <div class="card" id="cardStyles">
+        <div class="card-title">Styles</div>
+        <div class="card-value">–</div>
+      </div>
+      <div class="card" id="cardUpcoming">
+        <div class="card-title">Upcoming peak</div>
+        <div class="card-value">–</div>
+      </div>
+    </div>
     <!-- Filters for searching and narrowing down the table.  -->
     <div class="filters">
       <!-- Country filter -->
@@ -45,6 +70,22 @@
       <div class="filter">
         <label for="styleFilter">Style:</label>
         <select id="styleFilter">
+          <option value="">All</option>
+          <!-- options inserted dynamically -->
+        </select>
+      </div>
+      <!-- Vintage filter -->
+      <div class="filter">
+        <label for="vintageFilter">Vintage:</label>
+        <select id="vintageFilter">
+          <option value="">All</option>
+          <!-- options inserted dynamically -->
+        </select>
+      </div>
+      <!-- Grape filter -->
+      <div class="filter">
+        <label for="grapeFilter">Grape:</label>
+        <select id="grapeFilter">
           <option value="">All</option>
           <!-- options inserted dynamically -->
         </select>
@@ -89,9 +130,21 @@
       // Populate the filter dropdowns
       populateCountryFilter();
       populateStyleFilter();
+      populateVintageFilter();
+      populateGrapeFilter();
       // Initialize the DataTable with expandable details and search/filter features
       initDataTable();
+      // Render dashboard metrics if present
+      renderDashboard();
+      // Initialise theme toggle
+      initTheme();
     });
+    // Register service worker for offline/PWA capability
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
   </script>
 </body>
 </html>

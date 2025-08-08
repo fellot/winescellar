@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sustainability & Storage</title>
+  <!-- Styles and icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer"/>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
+</head>
+<body>
+  <nav>
+    <ul>
+      <li><a href="index.html#inventory">Inventory</a></li>
+      <li><a href="stats.html">Statistics</a></li>
+      <li><a href="sustainability.html">Sustainability</a></li>
+      <li class="theme-toggle"><button id="themeToggle" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button></li>
+    </ul>
+  </nav>
+  <header id="hero-stats">
+    <div class="hero-content">
+      <h1>Sustainability & Storage</h1>
+      <p>Learn how to care for your cellar responsibly, reduce energy consumption and create an eco‑friendly space for your wines.</p>
+    </div>
+  </header>
+  <section>
+    <h2>Eco‑Friendly Cellar Practices</h2>
+    <p>A thoughtfully designed wine cellar protects your bottles and the environment. Here are some tips to build and maintain a sustainable cellar:</p>
+    <ul>
+      <li><strong>Efficient insulation:</strong> Properly insulate walls and doors to reduce the energy required for cooling. High‑quality insulation helps maintain a stable temperature and humidity.</li>
+      <li><strong>Energy‑efficient cooling:</strong> Choose cooling units with high energy ratings and consider models that use eco‑friendly refrigerants. Regular maintenance keeps them running efficiently.</li>
+      <li><strong>LED lighting:</strong> Use LED lights which emit minimal heat and consume less power than incandescent bulbs. Motion sensors or timers help ensure lights are off when not needed.</li>
+      <li><strong>Reclaimed and natural materials:</strong> Build racks and shelving from reclaimed wood or sustainably sourced materials. Avoid plastics and chemicals that could off‑gas near your wines.</li>
+      <li><strong>Monitor conditions smartly:</strong> Employ smart sensors to track temperature and humidity. Automated alerts can notify you if conditions drift outside the ideal range, helping you respond quickly.</li>
+      <li><strong>Reduce waste:</strong> Repurpose wine crates, bottles and corks creatively, or recycle them properly. Supporting wineries with sustainable practices can also make a difference.</li>
+    </ul>
+    <p>Implementing these practices not only safeguards your collection but also reduces your environmental footprint, letting you enjoy your wines with peace of mind.</p>
+  </section>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="script.js"></script>
+  <script>
+    $(document).ready(function() {
+      initTheme();
+    });
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+</body>
+</html>
