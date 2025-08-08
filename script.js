@@ -475,6 +475,46 @@ const wines = [
 ];
 
 /*
+ * Colour palette for assigning colours to each wine style. Colours will be
+ * cycled through if there are more styles than colours in the palette. The
+ * palette uses a variety of rich, warm tones suitable for a wine-focused
+ * interface.
+ */
+const _styleColourPalette = [
+  '#7d0024', // deep red
+  '#c09553', // golden tan
+  '#d65b84', // rosé
+  '#58627a', // slate blue
+  '#a75334', // tawny
+  '#8b5e3c', // chestnut
+  '#4c6a92', // steel blue
+  '#6b8e23', // olive green
+  '#9e4784', // mauve
+  '#00a3a1'  // teal
+];
+
+/*
+ * Generate a mapping from each unique wine style to a colour from the
+ * palette. This mapping is computed once at load time and used when
+ * rendering style badges in the table. If the number of unique styles
+ * exceeds the palette length, colours repeat.
+ */
+const _styleColourMap = {};
+(() => {
+  const uniqueStyles = [...new Set(wines.map(w => w.style))];
+  uniqueStyles.forEach((style, idx) => {
+    _styleColourMap[style] = _styleColourPalette[idx % _styleColourPalette.length];
+  });
+})();
+
+/*
+ * Helper to gather unique values for a given key from the wines array.
+ */
+function _getUniqueValues(key) {
+  return [...new Set(wines.map(wine => wine[key]))].sort();
+}
+
+/*
  * Populate the inventory table with wine data.
  */
 function populateTable() {
@@ -503,7 +543,11 @@ function populateTable() {
  */
 function populateCountryFilter() {
   const select = document.getElementById('countryFilter');
-  const countries = [...new Set(wines.map(w => w.country))].sort();
+  // Remove any existing options except the first ("All") when repopulating
+  while (select.options.length > 1) {
+    select.remove(1);
+  }
+  const countries = _getUniqueValues('country');
   countries.forEach(country => {
     const option = document.createElement('option');
     option.value = country;
@@ -513,23 +557,122 @@ function populateCountryFilter() {
 }
 
 /*
+ * Populate the style filter dropdown with all unique wine styles. As with
+ * the country filter, an "All" option is provided to view all styles.
+ */
+function populateStyleFilter() {
+  const select = document.getElementById('styleFilter');
+  if (!select) return;
+  // Clear existing options except the first
+  while (select.options.length > 1) {
+    select.remove(1);
+  }
+  const styles = _getUniqueValues('style');
+  styles.forEach(style => {
+    const option = document.createElement('option');
+    option.value = style;
+    option.textContent = style;
+    select.appendChild(option);
+  });
+}
+
+/*
  * Initialize the DataTable with search and sort capabilities.
  */
 function initDataTable() {
+  // Initialise DataTable with custom columns, search and filter behaviour.
   const table = $('#wineTable').DataTable({
+    data: wines,
     paging: true,
     searching: true,
     info: false,
+    // Default ordering: by country then vintage (ascending)
     order: [[2, 'asc'], [4, 'asc']],
-    columnDefs: [
-      { targets: [0, 9, 10], orderable: false }
+    columns: [
+      {
+        className: 'details-control',
+        orderable: false,
+        data: null,
+        defaultContent: '<i class="fa fa-plus-circle"></i>',
+        width: '24px'
+      },
+      { data: 'bottle', title: 'Wine' },
+      { data: 'country', title: 'Country' },
+      { data: 'region', title: 'Region' },
+      { data: 'vintage', title: 'Vintage' },
+      {
+        data: 'style',
+        title: 'Style',
+        render: function(data, type, row) {
+          // Render a coloured badge for the style using the colour map.
+          const colour = _styleColourMap[data] || '#999';
+          return '<span class="badge" style="background-color:' + colour + ';">' + data + '</span>';
+        }
+      },
+      { data: 'grapes', title: 'Grapes' },
+      { data: 'window', title: 'Window' },
+      { data: 'peak', title: 'Peak' }
     ],
-    language: { search: 'Search:' }
+    columnDefs: [
+      { targets: [0], orderable: false }
+    ],
+    language: {
+      search: '',
+      searchPlaceholder: 'Search...'
+    }
   });
+
+  // Hook up custom search input to DataTable's search API
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('keyup', function() {
+      table.search(this.value).draw();
+    });
+  }
+
+  // Filter by country
   $('#countryFilter').on('change', function() {
     const val = $(this).val();
-    table.column(2).search(val ? `^${val}$` : '', true, false).draw();
+    table.column(2).search(val ? '^' + val + '$' : '', true, false).draw();
   });
+
+  // Filter by style
+  $('#styleFilter').on('change', function() {
+    const val = $(this).val();
+    // Search in the style column (index 5). Use regex to match the value inside the badge.
+    table.column(5).search(val ? val : '', true, false).draw();
+  });
+
+  // Handle expandable row details for pairing and meal.
+  $('#wineTable tbody').on('click', 'td.details-control', function() {
+    const tr = $(this).closest('tr');
+    const row = table.row(tr);
+    const icon = $(this).find('i');
+    if (row.child.isShown()) {
+      // Collapse the child row
+      row.child.hide();
+      tr.removeClass('shown');
+      icon.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+    } else {
+      // Expand the child row with the pairing and meal details
+      row.child(formatDetails(row.data())).show();
+      tr.addClass('shown');
+      icon.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+    }
+  });
+}
+
+/*
+ * Format the expandable child row contents for a given wine. This displays
+ * pairing suggestions and the recommended meal in a clean layout within
+ * the table. The returned HTML will be injected directly into the table
+ * by DataTables.
+ */
+function formatDetails(wine) {
+  return `<div class="details-container">
+            <strong>Pairing:</strong> ${wine.pairing}<br/>
+            <strong>Meal:</strong> ${wine.meal}
+          </div>`;
 }
 
 /*

@@ -159,3 +159,77 @@ canvas {
     padding: 12px 16px;
   }
 }
+
+/*
+ * Modern table enhancements
+ * Styles for the filters, badges, and expandable details used in the
+ * redesigned cellar inventory. These definitions live below the
+ * responsive media queries to override defaults where necessary.
+ */
+
+/* Container for all filters including country, style and search */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Individual filter grouping (label + control) */
+.filter {
+  display: flex;
+  align-items: center;
+}
+.filter label {
+  font-weight: 600;
+  margin-right: 6px;
+}
+.filter select,
+.filter input[type="text"] {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* Search input width for better usability */
+.filter.search input[type="text"] {
+  width: 220px;
+}
+
+/* Badges used to highlight wine styles with custom colours. Colours
+ * are applied inline via the style attribute in script.js. */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Style for the expand/collapse control cell */
+td.details-control {
+  text-align: center;
+  cursor: pointer;
+  color: var(--primary-color);
+}
+td.details-control i {
+  font-size: 1rem;
+}
+/* When a row is expanded, rotate the icon (we switch to minus icon via JS) */
+tr.shown td.details-control i {
+  transform: rotate(0deg);
+}
+
+/* Container for the details content within expanded rows */
+.details-container {
+  padding: 10px 15px;
+  background-color: var(--light-bg);
+  border-left: 4px solid var(--primary-color);
+  font-size: 0.95rem;
+}

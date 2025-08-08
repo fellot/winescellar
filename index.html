@@ -31,17 +31,35 @@
   <!-- Inventory Section -->
   <section id="inventory">
     <h2>Cellar Inventory</h2>
-    <div id="filter-section">
-      <label for="countryFilter">Filter by country:</label>
-      <select id="countryFilter">
-        <option value="">All</option>
-        <!-- options inserted dynamically -->
-      </select>
+    <!-- Filters for searching and narrowing down the table.  -->
+    <div class="filters">
+      <!-- Country filter -->
+      <div class="filter">
+        <label for="countryFilter">Country:</label>
+        <select id="countryFilter">
+          <option value="">All</option>
+          <!-- options inserted dynamically -->
+        </select>
+      </div>
+      <!-- Style filter -->
+      <div class="filter">
+        <label for="styleFilter">Style:</label>
+        <select id="styleFilter">
+          <option value="">All</option>
+          <!-- options inserted dynamically -->
+        </select>
+      </div>
+      <!-- Text search input -->
+      <div class="filter search">
+        <input type="text" id="searchInput" placeholder="Search wines, grapes, regions..."/>
+      </div>
     </div>
+    <!-- Modern table with expandable rows (pairing/meal details). -->
     <div class="table-responsive">
       <table id="wineTable" class="display" width="100%">
         <thead>
           <tr>
+            <!-- Empty header for expand/collapse control -->
             <th></th>
             <th>Wine</th>
             <th>Country</th>
@@ -51,8 +69,6 @@
             <th>Grapes</th>
             <th>Window</th>
             <th>Peak</th>
-            <th>Pairing</th>
-            <th>Meal</th>
           </tr>
         </thead>
         <tbody>
@@ -70,8 +86,10 @@
   <script>
     // Initialize the page once DOM is loaded
     $(document).ready(function() {
-      populateTable();
+      // Populate the filter dropdowns
       populateCountryFilter();
+      populateStyleFilter();
+      // Initialize the DataTable with expandable details and search/filter features
       initDataTable();
     });
   </script>
