@@ -655,7 +655,12 @@ function initDataTable() {
         render: function(data) {
           if (!data) return '';
           const fileName = data.toLowerCase().replace(/[^a-z]/g, '');
-          return '<img src="labels/' + fileName + '.png" class="label-img" alt="' + data + ' label"/>';
+              // Use images stored at the repository root rather than in a
+              // subfolder. The label images (e.g. red.png, white.png) live in
+              // the root directory of the site. Remove the `labels/` prefix
+              // when constructing the image path so the images are correctly
+              // resolved by the browser.
+              return '<img src="' + fileName + '.png" class="label-img" alt="' + data + ' label"/>';
         }
       },
       {
