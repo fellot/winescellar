@@ -476,7 +476,10 @@ const wines = [
 
 // Assign a stable id to each wine entry corresponding to its index in the array.
 wines.forEach((w, i) => {
+  // Assign a stable id to each wine entry corresponding to its index in the array.
   w.id = i;
+  // Add a consumed flag. Mark Château d’Agassac as consumed; all others default to false.
+  w.consumed = (w.bottle === 'Château d’Agassac');
 });
 
 /*
@@ -639,16 +642,10 @@ function initDataTable() {
     paging: true,
     searching: true,
     info: false,
-    // Default ordering: by country then vintage (ascending)
-    order: [[2, 'asc'], [4, 'asc']],
+    // Default ordering: by country then vintage (ascending). Note that column
+    // indices have shifted since we removed the expandable details column.
+    order: [[1, 'asc'], [3, 'asc']],
     columns: [
-      {
-        className: 'details-control',
-        orderable: false,
-        data: null,
-        defaultContent: '<i class="fa fa-plus-circle"></i>',
-        width: '24px'
-      },
       {
         data: 'bottle',
         title: 'Wine',
@@ -671,10 +668,16 @@ function initDataTable() {
       },
       { data: 'grapes', title: 'Grapes' },
       { data: 'window', title: 'Window' },
-      { data: 'peak', title: 'Peak' }
-    ],
-    columnDefs: [
-      { targets: [0], orderable: false }
+      { data: 'peak', title: 'Peak' },
+      { data: 'pairing', title: 'Pairing' },
+      { data: 'meal', title: 'Meal' },
+      {
+        data: 'consumed',
+        title: 'Consumed',
+        render: function(data) {
+          return data ? 'Yes' : 'No';
+        }
+      }
     ],
     language: {
       search: '',
@@ -690,46 +693,29 @@ function initDataTable() {
     });
   }
 
-  // Filter by country
+  // Filter by country (column index 1 after removing details column)
   $('#countryFilter').on('change', function() {
     const val = $(this).val();
-    table.column(2).search(val ? '^' + val + '$' : '', true, false).draw();
+    table.column(1).search(val ? '^' + val + '$' : '', true, false).draw();
   });
 
-  // Filter by style
+  // Filter by style (column index 4). Use regex to match the value inside the badge
   $('#styleFilter').on('change', function() {
     const val = $(this).val();
-    // Search in the style column (index 5). Use regex to match the value inside the badge.
-    table.column(5).search(val ? val : '', true, false).draw();
+    table.column(4).search(val ? val : '', true, false).draw();
   });
 
-  // Handle expandable row details for pairing and meal.
-  $('#wineTable tbody').on('click', 'td.details-control', function() {
-    const tr = $(this).closest('tr');
-    const row = table.row(tr);
-    const icon = $(this).find('i');
-    if (row.child.isShown()) {
-      // Collapse the child row
-      row.child.hide();
-      tr.removeClass('shown');
-      icon.removeClass('fa-minus-circle').addClass('fa-plus-circle');
-    } else {
-      // Expand the child row with the pairing and meal details
-      row.child(formatDetails(row.data())).show();
-      tr.addClass('shown');
-      icon.removeClass('fa-plus-circle').addClass('fa-minus-circle');
-    }
-  });
+  // Removed expandable row details since pairing and meal are now displayed as columns
 
-  // Filter by vintage
+  // Filter by vintage (column index 3)
   $('#vintageFilter').on('change', function() {
     const val = $(this).val();
-    table.column(4).search(val ? '^' + val + '$' : '', true, false).draw();
+    table.column(3).search(val ? '^' + val + '$' : '', true, false).draw();
   });
-  // Filter by grape variety (allow substring match)
+  // Filter by grape variety (allow substring match). Grapes are at column index 5.
   $('#grapeFilter').on('change', function() {
     const val = $(this).val();
-    table.column(6).search(val ? val : '', true, false).draw();
+    table.column(5).search(val ? val : '', true, false).draw();
   });
 }
 
