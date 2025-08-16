@@ -387,3 +387,18 @@ tr.shown td.details-control i {
   font-size: 0.9rem;
   line-height: 1.4;
 }
+
+/*
+ * Custom styling for the label images displayed in the inventory table.
+ * The images are constrained to a consistent width and maintain their
+ * aspect ratio. A small border radius softens the edges and the images
+ * are horizontally centred within their cell.
+ */
+.label-img {
+  width: 60px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border-radius: 4px;
+  object-fit: cover;
+}
