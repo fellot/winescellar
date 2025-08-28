@@ -5,6 +5,7 @@
   --light-bg: #f9f7f6;
   --dark-text: #333;
   --accent: #e2cfc9;
+  --card-bg: #fff5f1;
 }
 
 html {
@@ -17,6 +18,20 @@ body {
   background: var(--light-bg);
   color: var(--dark-text);
   line-height: 1.5;
+}
+
+/* Dark theme overrides using CSS variables */
+.dark-theme {
+  --primary-color: #d6b8c4;
+  --secondary-color: #8b5a66;
+  --light-bg: #1f1b24;
+  --dark-text: #f3eef3;
+  --accent: #3a2a3a;
+  --card-bg: #2d2531;
+}
+.dark-theme body {
+  background: var(--light-bg);
+  color: var(--dark-text);
 }
 
 /* Hero sections */
@@ -54,6 +69,8 @@ nav ul {
   margin: 0;
   padding: 0;
   display: flex;
+  align-items: center;
+  width: 100%;
 }
 nav li {
   margin: 0;
@@ -70,6 +87,22 @@ nav a:hover {
   background: var(--secondary-color);
 }
 
+/* Style the theme toggle button inside the navigation */
+nav .theme-toggle {
+  margin-left: auto;
+}
+nav .theme-toggle button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 15px 20px;
+}
+nav .theme-toggle button:hover {
+  background: var(--secondary-color);
+}
+
 /* Section headings */
 section {
   padding: 40px 20px;
@@ -82,6 +115,33 @@ section h2 {
   color: var(--primary-color);
   text-align: center;
   font-weight: 700;
+}
+
+/* Dashboard cards showing key metrics */
+.dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.dashboard .card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  min-width: 140px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.dashboard .card-title {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+  margin-bottom: 0.3rem;
+}
+.dashboard .card-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--secondary-color);
 }
 
 /* Filter and table styling */
@@ -158,4 +218,187 @@ canvas {
   nav a {
     padding: 12px 16px;
   }
+}
+
+/*
+ * Modern table enhancements
+ * Styles for the filters, badges, and expandable details used in the
+ * redesigned cellar inventory. These definitions live below the
+ * responsive media queries to override defaults where necessary.
+ */
+
+/* Container for all filters including country, style and search */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Individual filter grouping (label + control) */
+.filter {
+  display: flex;
+  align-items: center;
+}
+.filter label {
+  font-weight: 600;
+  margin-right: 6px;
+}
+.filter select,
+.filter input[type="text"] {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* Search input width for better usability */
+.filter.search input[type="text"] {
+  width: 220px;
+}
+
+/* Badges used to highlight wine styles with custom colours. Colours
+ * are applied inline via the style attribute in script.js. */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Links in the table (wine names) */
+table.dataTable a.wine-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+table.dataTable a.wine-link:hover {
+  text-decoration: underline;
+}
+
+/* Style for the expand/collapse control cell */
+td.details-control {
+  text-align: center;
+  cursor: pointer;
+  color: var(--primary-color);
+}
+td.details-control i {
+  font-size: 1rem;
+}
+/* When a row is expanded, rotate the icon (we switch to minus icon via JS) */
+tr.shown td.details-control i {
+  transform: rotate(0deg);
+}
+
+/* Container for the details content within expanded rows */
+.details-container {
+  padding: 10px 15px;
+  background-color: var(--light-bg);
+  border-left: 4px solid var(--primary-color);
+  font-size: 0.95rem;
+}
+
+/* Detail page styles */
+#wineDetails {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.dark-theme #wineDetails {
+  background: var(--card-bg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.wine-name {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+.wine-meta {
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+}
+.wine-meta span {
+  margin-right: 0.5rem;
+}
+.wine-pairing {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.notes-section, .logs-section {
+  margin-bottom: 2rem;
+}
+.notes-section textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  resize: vertical;
+}
+.dark-theme .notes-section textarea {
+  background: #2e2634;
+  color: var(--dark-text);
+  border: 1px solid #444;
+}
+.notes-section button, .logs-section button {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+.notes-section button:hover, .logs-section button:hover {
+  background: var(--secondary-color);
+}
+
+/* Tasting log form */
+.log-form input[type="date"], .log-form select, .log-form textarea {
+  width: 100%;
+  padding: 6px 8px;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+.dark-theme .log-form input[type="date"], .dark-theme .log-form select, .dark-theme .log-form textarea {
+  background: #2e2634;
+  color: var(--dark-text);
+  border: 1px solid #444;
+}
+.log-item {
+  background: var(--card-bg);
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/*
+ * Custom styling for the label images displayed in the inventory table.
+ * The images are constrained to a consistent width and maintain their
+ * aspect ratio. A small border radius softens the edges and the images
+ * are horizontally centred within their cell.
+ */
+.label-img {
+  width: 60px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border-radius: 4px;
+  object-fit: cover;
 }

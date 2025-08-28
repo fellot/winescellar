@@ -474,6 +474,54 @@ const wines = [
   }
 ];
 
+// Assign a stable id to each wine entry corresponding to its index in the array.
+wines.forEach((w, i) => {
+  // Assign a stable id to each wine entry corresponding to its index in the array.
+  w.id = i;
+  // Add a consumed flag. Mark Château d’Agassac as consumed; all others default to false.
+  w.consumed = (w.bottle === 'Château d’Agassac');
+});
+
+/*
+ * Colour palette for assigning colours to each wine style. Colours will be
+ * cycled through if there are more styles than colours in the palette. The
+ * palette uses a variety of rich, warm tones suitable for a wine-focused
+ * interface.
+ */
+const _styleColourPalette = [
+  '#7d0024', // deep red
+  '#c09553', // golden tan
+  '#d65b84', // rosé
+  '#58627a', // slate blue
+  '#a75334', // tawny
+  '#8b5e3c', // chestnut
+  '#4c6a92', // steel blue
+  '#6b8e23', // olive green
+  '#9e4784', // mauve
+  '#00a3a1'  // teal
+];
+
+/*
+ * Generate a mapping from each unique wine style to a colour from the
+ * palette. This mapping is computed once at load time and used when
+ * rendering style badges in the table. If the number of unique styles
+ * exceeds the palette length, colours repeat.
+ */
+const _styleColourMap = {};
+(() => {
+  const uniqueStyles = [...new Set(wines.map(w => w.style))];
+  uniqueStyles.forEach((style, idx) => {
+    _styleColourMap[style] = _styleColourPalette[idx % _styleColourPalette.length];
+  });
+})();
+
+/*
+ * Helper to gather unique values for a given key from the wines array.
+ */
+function _getUniqueValues(key) {
+  return [...new Set(wines.map(wine => wine[key]))].sort();
+}
+
 /*
  * Populate the inventory table with wine data.
  */
@@ -503,7 +551,11 @@ function populateTable() {
  */
 function populateCountryFilter() {
   const select = document.getElementById('countryFilter');
-  const countries = [...new Set(wines.map(w => w.country))].sort();
+  // Remove any existing options except the first ("All") when repopulating
+  while (select.options.length > 1) {
+    select.remove(1);
+  }
+  const countries = _getUniqueValues('country');
   countries.forEach(country => {
     const option = document.createElement('option');
     option.value = country;
@@ -513,22 +565,329 @@ function populateCountryFilter() {
 }
 
 /*
+ * Populate the style filter dropdown with all unique wine styles. As with
+ * the country filter, an "All" option is provided to view all styles.
+ */
+function populateStyleFilter() {
+  const select = document.getElementById('styleFilter');
+  if (!select) return;
+  // Clear existing options except the first
+  while (select.options.length > 1) {
+    select.remove(1);
+  }
+  const styles = _getUniqueValues('style');
+  styles.forEach(style => {
+    const option = document.createElement('option');
+    option.value = style;
+    option.textContent = style;
+    select.appendChild(option);
+  });
+}
+
+/*
+ * Populate the vintage filter with unique vintage years from the data. Vintages
+ * are sorted in ascending order to make it easy to select a particular year.
+ */
+function populateVintageFilter() {
+  const select = document.getElementById('vintageFilter');
+  if (!select) return;
+  // Clear existing options except the first
+  while (select.options.length > 1) {
+    select.remove(1);
+  }
+  // Extract unique vintages
+  const years = Array.from(new Set(wines.map(w => w.vintage))).sort((a, b) => a - b);
+  years.forEach(year => {
+    const option = document.createElement('option');
+    option.value = year;
+    option.textContent = year;
+    select.appendChild(option);
+  });
+}
+
+/*
+ * Populate the grape filter dropdown with a unique list of individual grape
+ * varieties. Because some entries have multiple grapes separated by commas,
+ * we split and normalise them before deduplication.
+ */
+function populateGrapeFilter() {
+  const select = document.getElementById('grapeFilter');
+  if (!select) return;
+  while (select.options.length > 1) {
+    select.remove(1);
+  }
+  const grapesSet = new Set();
+  wines.forEach(w => {
+    w.grapes.split(',').forEach(g => {
+      const trimmed = g.trim();
+      if (trimmed) grapesSet.add(trimmed);
+    });
+  });
+  const grapes = Array.from(grapesSet).sort((a, b) => a.localeCompare(b));
+  grapes.forEach(g => {
+    const option = document.createElement('option');
+    option.value = g;
+    option.textContent = g;
+    select.appendChild(option);
+  });
+}
+
+/*
  * Initialize the DataTable with search and sort capabilities.
  */
 function initDataTable() {
+  // Initialise DataTable with custom columns, search and filter behaviour.
   const table = $('#wineTable').DataTable({
+    data: wines,
     paging: true,
     searching: true,
     info: false,
+    // Default ordering: by country then vintage (ascending). Note that column
+    // indices have shifted since we introduced a leading label column.
     order: [[2, 'asc'], [4, 'asc']],
-    columnDefs: [
-      { targets: [0, 9, 10], orderable: false }
+    columns: [
+      {
+        // Use the wine style to determine the appropriate label image. The
+        // filename is derived from the lowercase style with non‑letters removed.
+        data: 'style',
+        title: 'Label',
+        orderable: false,
+        render: function(data) {
+          if (!data) return '';
+          const fileName = data.toLowerCase().replace(/[^a-z]/g, '');
+              // Use images stored at the repository root rather than in a
+              // subfolder. The label images (e.g. red.png, white.png) live in
+              // the root directory of the site. Remove the `labels/` prefix
+              // when constructing the image path so the images are correctly
+              // resolved by the browser.
+              return '<img src="' + fileName + '.png" class="label-img" alt="' + data + ' label"/>';
+        }
+      },
+      {
+        data: 'bottle',
+        title: 'Wine',
+        render: function(data, type, row) {
+          // Make the wine name a link to a dedicated details page
+          return '<a href="wine.html?id=' + row.id + '" class="wine-link">' + data + '</a>';
+        }
+      },
+      { data: 'country', title: 'Country' },
+      { data: 'region', title: 'Region' },
+      { data: 'vintage', title: 'Vintage' },
+      {
+        data: 'style',
+        title: 'Style',
+        render: function(data) {
+          // Render a coloured badge for the style using the colour map.
+          const colour = _styleColourMap[data] || '#999';
+          return '<span class="badge" style="background-color:' + colour + ';">' + data + '</span>';
+        }
+      },
+      { data: 'grapes', title: 'Grapes' },
+      { data: 'window', title: 'Window' },
+      { data: 'peak', title: 'Peak' },
+      { data: 'pairing', title: 'Pairing' },
+      { data: 'meal', title: 'Meal' },
+      {
+        data: 'consumed',
+        title: 'Consumed',
+        render: function(data) {
+          return data ? 'Yes' : 'No';
+        }
+      }
     ],
-    language: { search: 'Search:' }
+    language: {
+      search: '',
+      searchPlaceholder: 'Search...'
+    }
   });
+
+  // Hook up custom search input to DataTable's search API
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('keyup', function() {
+      table.search(this.value).draw();
+    });
+  }
+
+  // Filter by country (column index 2 after adding the label column)
   $('#countryFilter').on('change', function() {
     const val = $(this).val();
-    table.column(2).search(val ? `^${val}$` : '', true, false).draw();
+    table.column(2).search(val ? '^' + val + '$' : '', true, false).draw();
+  });
+
+  // Filter by style (column index 5). Use regex to match the value inside the badge
+  $('#styleFilter').on('change', function() {
+    const val = $(this).val();
+    table.column(5).search(val ? val : '', true, false).draw();
+  });
+
+  // Removed expandable row details since pairing and meal are now displayed as columns
+
+  // Filter by vintage (column index 4)
+  $('#vintageFilter').on('change', function() {
+    const val = $(this).val();
+    table.column(4).search(val ? '^' + val + '$' : '', true, false).draw();
+  });
+  // Filter by grape variety (allow substring match). Grapes are at column index 6.
+  $('#grapeFilter').on('change', function() {
+    const val = $(this).val();
+    table.column(6).search(val ? val : '', true, false).draw();
+  });
+}
+
+/*
+ * Format the expandable child row contents for a given wine. This displays
+ * pairing suggestions and the recommended meal in a clean layout within
+ * the table. The returned HTML will be injected directly into the table
+ * by DataTables.
+ */
+function formatDetails(wine) {
+  return `<div class="details-container">
+            <strong>Pairing:</strong> ${wine.pairing}<br/>
+            <strong>Meal:</strong> ${wine.meal}
+          </div>`;
+}
+
+/*
+ * Compute and render key metrics onto the dashboard cards. Metrics include
+ * total number of bottles, number of unique countries, number of styles and
+ * the nearest upcoming peak year. If the dashboard cards are not present
+ * (e.g. on detail pages), this function silently returns.
+ */
+function renderDashboard() {
+  const totalCard = document.querySelector('#cardTotal .card-value');
+  if (!totalCard) return; // dashboard not on this page
+  const total = wines.length;
+  const countries = countByKey('country');
+  const styles = countByKey('style');
+  // Determine the nearest upcoming peak year (>= current year)
+  const currentYear = new Date().getFullYear();
+  const peaks = wines.map(w => parseInt(w.peak)).filter(y => !isNaN(y) && y >= currentYear);
+  const upcoming = peaks.length ? Math.min(...peaks) : '–';
+  document.querySelector('#cardTotal .card-value').textContent = total;
+  document.querySelector('#cardCountries .card-value').textContent = Object.keys(countries).length;
+  document.querySelector('#cardStyles .card-value').textContent = Object.keys(styles).length;
+  document.querySelector('#cardUpcoming .card-value').textContent = upcoming;
+}
+
+/*
+ * Initialise the theme based on saved preference. Adds a click handler to
+ * toggle between light and dark modes, storing the choice in localStorage.
+ */
+function initTheme() {
+  const body = document.body;
+  const toggleBtn = document.getElementById('themeToggle');
+  // Determine saved theme
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') {
+    body.classList.add('dark-theme');
+  }
+  updateToggleIcon(saved === 'dark' ? 'dark' : 'light');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      body.classList.toggle('dark-theme');
+      const isDark = body.classList.contains('dark-theme');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateToggleIcon(isDark ? 'dark' : 'light');
+    });
+  }
+}
+
+/*
+ * Update the theme toggle icon (sun or moon) depending on the current theme.
+ */
+function updateToggleIcon(theme) {
+  const icon = document.querySelector('#themeToggle i');
+  if (!icon) return;
+  if (theme === 'dark') {
+    icon.classList.remove('fa-moon');
+    icon.classList.add('fa-sun');
+  } else {
+    icon.classList.remove('fa-sun');
+    icon.classList.add('fa-moon');
+  }
+}
+
+/*
+ * Render the wine details page. When a page contains an element with the
+ * id "wineDetails", this function reads the query parameter "id", looks
+ * up the corresponding wine object, and fills the page with its
+ * information. It also initialises note taking and tasting log features
+ * using localStorage to persist data between sessions. If the page does
+ * not contain #wineDetails or the id is invalid, the function exits.
+ */
+function initWinePage() {
+  const container = document.getElementById('wineDetails');
+  if (!container) return;
+  const params = new URLSearchParams(window.location.search);
+  const idParam = params.get('id');
+  if (!idParam) return;
+  const wine = wines.find(w => w.id === parseInt(idParam));
+  if (!wine) {
+    container.innerHTML = '<p>Wine not found.</p>';
+    return;
+  }
+  // Build the detail markup
+  container.querySelector('.wine-name').textContent = wine.bottle;
+  container.querySelector('.wine-meta').innerHTML = `
+    <span><strong>Country:</strong> ${wine.country}</span> | 
+    <span><strong>Region:</strong> ${wine.region}</span> | 
+    <span><strong>Vintage:</strong> ${wine.vintage}</span> | 
+    <span><strong>Style:</strong> ${wine.style}</span> | 
+    <span><strong>Grapes:</strong> ${wine.grapes}</span> | 
+    <span><strong>Window:</strong> ${wine.window}</span> | 
+    <span><strong>Peak:</strong> ${wine.peak}</span>
+  `;
+  container.querySelector('.wine-pairing').innerHTML = `<strong>Pairing:</strong> ${wine.pairing}<br/><strong>Meal:</strong> ${wine.meal}`;
+  // Notes
+  const notesKey = `notes_${wine.id}`;
+  const notesInput = document.getElementById('notesInput');
+  if (notesInput) {
+    notesInput.value = localStorage.getItem(notesKey) || '';
+    document.getElementById('saveNotesBtn').addEventListener('click', () => {
+      localStorage.setItem(notesKey, notesInput.value);
+      alert('Notes saved!');
+    });
+  }
+  // Tasting log
+  const logForm = document.getElementById('logForm');
+  if (logForm) {
+    logForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const date = document.getElementById('logDate').value;
+      const rating = document.getElementById('logRating').value;
+      const comment = document.getElementById('logComment').value.trim();
+      const logKey = `logs_${wine.id}`;
+      const logs = JSON.parse(localStorage.getItem(logKey) || '[]');
+      logs.push({ date, rating, comment });
+      localStorage.setItem(logKey, JSON.stringify(logs));
+      logForm.reset();
+      renderLogs(wine.id);
+    });
+  }
+  renderLogs(wine.id);
+}
+
+/*
+ * Render the tasting logs for a given wine id. Creates a list of past
+ * entries with the date, rating and comment. If no logs exist a friendly
+ * message is shown.
+ */
+function renderLogs(id) {
+  const logsContainer = document.getElementById('logsList');
+  if (!logsContainer) return;
+  logsContainer.innerHTML = '';
+  const logs = JSON.parse(localStorage.getItem(`logs_${id}`) || '[]');
+  if (!logs.length) {
+    logsContainer.innerHTML = '<p>No tasting logs yet.</p>';
+    return;
+  }
+  logs.forEach(entry => {
+    const div = document.createElement('div');
+    div.className = 'log-item';
+    div.innerHTML = `<strong>${entry.date}</strong> – ${entry.rating}/5<br/>${entry.comment || ''}`;
+    logsContainer.appendChild(div);
   });
 }
 
